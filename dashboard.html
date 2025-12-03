@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Greenhouse - Dashboard</title>
+
+<style>
+  :root{
+    --bg:#f3f8f3;
+    --card:#ffffff;
+    --accent:#1f7a3a;
+    --accent-2:#5db46a;
+    --danger:#e44d2e;
+    --ok:#06a763;
+    --muted:#6b7280;
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+
+  body{
+    margin:0;
+    padding:26px;
+    background: linear-gradient(180deg,#f8fff9 0%, #eef9f0 100%);
+    color:#063b19;
+    min-height:100vh;
+  }
+
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:22px;
+  }
+  .brand{
+    display:flex; gap:12px; align-items:center;
+  }
+  .logo{
+    width:48px;height:48px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:white; display:flex;align-items:center;justify-content:center;font-weight:700;
+  }
+  h1{ margin:0; font-size:20px; }
+  .sub{ color:var(--muted); font-size:13px; }
+
+  .controls{ display:flex; gap:10px; align-items:center; }
+  .btn {
+    padding:8px 12px; border-radius:10px; border:none; cursor:pointer; font-weight:600;
+  }
+  .btn.logout{ background:#fff; border:1px solid rgba(0,0,0,0.06); color:var(--accent); }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap:18px;
+  }
+
+  .card{
+    background:var(--card);
+    border-radius:12px;
+    padding:16px;
+    box-shadow: 0 8px 24px rgba(13,27,18,0.04);
+    display:flex; flex-direction:column; gap:8px;
+  }
+
+  .card h3{ margin:0; font-size:15px; color:#06421b; }
+  .value{
+    font-size:28px; font-weight:700; color:#0b2e13;
+  }
+  .chip{
+    display:inline-block;
+    padding:6px 10px;
+    background:rgba(47,143,74,0.09);
+    color:var(--accent);
+    border-radius:999px;
+    font-weight:600;
+    font-size:12px;
+  }
+
+  .small{ font-size:13px; color:var(--muted); }
+
+  footer{ margin-top:20px; color:var(--muted); font-size:13px; text-align:center; }
+
+  @media (max-width:480px){
+    body{ padding:16px; }
+    .value{ font-size:24px; }
+  }
+</style>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+  import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCw6WujCRHbDPo2oqM5d7BmnHj1xAE0rew",
+    authDomain: "m11-iot-b28b6.firebaseapp.com",
+    databaseURL: "https://m11-iot-b28b6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const auth = getAuth(app);
+
+  const path = "greenhouse/sensors";
+
+  window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      signOut(auth).then(()=> location.href = "index.html");
+    });
+
+    // start listening immediately
+    listenToSensors();
+  });
+
+  function listenToSensors(){
+    const sensorRef = ref(db, path);
+    onValue(sensorRef, snapshot => {
+      const d = snapshot.val() || {};
+      updateSoil(d.soilMoisture);
+      updateLight(d.lightLevel);
+      updateMotion(d.motion);
+      updateTimestamp(d.timestamp);
+    });
+  }
+
+  function updateSoil(v){
+    const val = typeof v === "number" ? v : (v || 0);
+    document.getElementById("soilVal").innerText = val + " %";
+    document.getElementById("soilStatus").innerText = val < 30 ? "Kering" : val < 70 ? "Cukup" : "Basah";
+  }
+
+  function updateLight(v){
+    const val = typeof v === "number" ? v : (v || 0);
+    document.getElementById("lightVal").innerText = val + " %";
+    document.getElementById("lightStatus").innerText = val < 30 ? "Redup" : val < 70 ? "Cukup" : "Terang";
+  }
+
+  function updateMotion(v){
+    const has = !!v;
+    document.getElementById("motionVal").innerText = has ? "Terdeteksi" : "Tidak";
+    document.getElementById("motionStatus").innerText = has ? "Ada Gerakan" : "Aman";
+  }
+
+  function updateTimestamp(t){
+    if(!t){ document.getElementById("time").innerText = "-"; return; }
+    const dt = new Date(t);
+    document.getElementById("time").innerText = dt.toLocaleString();
+  }
+</script>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="logo">SP</div>
+    <div>
+      <h1>Smart Plant Green House</h1>
+      <div class="sub">Realtime Sensor Dashboard · M11</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="small">Last update: <span id="time">-</span></div>
+    <button id="logoutBtn" class="btn logout">Logout</button>
+  </div>
+</header>
+
+<main>
+  <div class="grid">
+    <div class="card">
+      <h3>Kelembaban Tanah</h3>
+      <div class="value" id="soilVal">-- %</div>
+      <div class="small">Status: <span id="soilStatus" class="chip">--</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Tingkat Cahaya</h3>
+      <div class="value" id="lightVal">-- %</div>
+      <div class="small">Status: <span id="lightStatus" class="chip">--</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Gerakan (PIR)</h3>
+      <div class="value" id="motionVal">--</div>
+      <div class="small">Detail: <span id="motionStatus" class="chip">--</span></div>
+    </div>
+  </div>
+
+  <footer>
+    M11 - Cloud dan Visualisasi Data dengan Firebase · Mikroskil
+  </footer>
+</main>
+
+</body>
+</html>

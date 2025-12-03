@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Smart Greenhouse - Login</title>
+
+<style>
+  :root{
+    --bg:#f4fbf6;
+    --card:#ffffff;
+    --accent:#2f8f4a;
+    --accent-2:#60b36b;
+    --muted:#6b7280;
+    --glass: rgba(255,255,255,0.7);
+    --shadow: 0 6px 18px rgba(15,23,42,0.08);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+
+  html,body{height:100%}
+  body{
+    margin:0;
+    background: linear-gradient(180deg,#eef9f0 0%, #f8fff9 100%);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    color:#0b2e13;
+  }
+
+  .container{
+    width:100%;
+    max-width:420px;
+    background:var(--card);
+    border-radius:14px;
+    box-shadow:var(--shadow);
+    padding:28px;
+  }
+
+  .brand{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .logo{
+    width:56px;
+    height:56px;
+    border-radius:12px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-weight:700;
+    font-size:20px;
+  }
+  h1{ font-size:20px; margin:0; }
+  p.lead{ margin:6px 0 18px; color:var(--muted); font-size:13px }
+
+  .form-group{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+  input[type="email"], input[type="password"]{
+    padding:12px 14px;
+    border-radius:10px;
+    border:1px solid #e6efe6;
+    background:linear-gradient(180deg, #ffffff, #fbfffb);
+    outline:none;
+    font-size:14px;
+    box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  }
+  input:focus{ border-color:var(--accent); box-shadow:0 6px 18px rgba(47,143,74,0.08); }
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    padding:10px 14px;
+    background:var(--accent);
+    color:white;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    width:100%;
+  }
+  .btn.secondary{
+    background:transparent;
+    color:var(--accent);
+    border:1px solid rgba(47,143,74,0.12);
+    font-weight:600;
+  }
+
+  .foot{ text-align:center; margin-top:16px; font-size:13px; color:var(--muted) }
+  @media (max-width:480px){
+    .container{ padding:20px; border-radius:12px; }
+  }
+</style>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCw6WujCRHbDPo2oqM5d7BmnHj1xAE0rew",
+    authDomain: "m11-iot-b28b6.firebaseapp.com",
+    databaseURL: "https://m11-iot-b28b6-default-rtdb.asia-southeast1.firebasedatabase.app",
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value.trim();
+      const pass = document.getElementById("password").value;
+      if(!email || !pass){ alert("Isi email dan password"); return; }
+
+      signInWithEmailAndPassword(auth, email, pass)
+        .then(()=> window.location = "dashboard.html")
+        .catch(err => alert("Login gagal: " + err.message));
+    });
+
+    // optional: enter to submit
+    document.addEventListener("keypress", e => {
+      if(e.key === "Enter") document.getElementById("loginBtn").click();
+    });
+  });
+</script>
+</head>
+<body>
+  <div class="container" role="main">
+    <div class="brand">
+      <div class="logo">SP</div>
+      <div>
+        <h1>Smart Plant Green House</h1>
+        <p class="lead">Login untuk melihat data sensor realtime</p>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="email" style="font-size:13px;color:var(--muted)">Email</label>
+      <input id="email" type="email" placeholder="email@contoh.com" />
+    </div>
+
+    <div class="form-group">
+      <label for="password" style="font-size:13px;color:var(--muted)">Password</label>
+      <input id="password" type="password" placeholder="Masukkan password" />
+    </div>
+
+    <button id="loginBtn" class="btn">Masuk ke Dashboard</button>
+
+    <div class="foot">M11 - Cloud & Visualisasi Data dengan Firebase · Mikroskil</div>
+  </div>
+</body>
+</html>
